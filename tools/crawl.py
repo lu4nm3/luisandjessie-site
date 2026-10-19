@@ -141,6 +141,15 @@ def parse_page(u, html):
 
 
 def crawl():
+    # LiteSpeed "guest mode" serves first-time visitors a stripped-down page
+    # (critical CSS only, no web fonts) and then reloads into the full page once
+    # this endpoint sets the _lscache_vary cookie. Get the cookie up front so we
+    # capture the full page real browsers end up seeing.
+    try:
+        S.post(BASE + "/wp-content/plugins/litespeed-cache/guest.vary.php", timeout=30)
+    except Exception as e:
+        print("vary cookie failed:", e, file=sys.stderr)
+    print("cookies:", list(S.cookies.keys()), file=sys.stderr)
     queue = list(dict.fromkeys(SEEDS))
     all_assets = set()
     while queue:

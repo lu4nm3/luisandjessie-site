@@ -75,8 +75,12 @@ def relativize(text, prefix, escaped_ok=True):
         text = re.sub(r"https?:\\/\\/" + HOST + r"\\/", esc if esc else ".\\/", text)
     text = re.sub(r"(?:https?:)?//" + HOST + r"/", prefix if prefix else "./", text)
     text = re.sub(r"(?:https?:)?//" + HOST + r"(?=[\"'\s<)])", home, text)
+    # root-relative URLs (/cf-fonts/..., /wp-content/...) break under username.github.io/repo/
+    text = re.sub(r"""(url\(\s*['"]?|\b(?:src|href|data-src|srcset|data-srcset|poster)=["'])/(?![/\\])""",
+                  lambda m: m.group(1) + (prefix or "./"), text)
+    text = re.sub(r"(,\s*)/(wp-content|wp-includes|cf-fonts)/", lambda m: m.group(1) + prefix + m.group(2) + "/", text)
     # a few WP inline scripts use root-relative paths
-    text = re.sub(r'(["\(])/wp-(content|includes)/', lambda m: m.group(1) + prefix + f"wp-{m.group(2)}/", text)
+    text = re.sub(r'(["\(])/(wp-content|wp-includes|cf-fonts)/', lambda m: m.group(1) + prefix + f"{m.group(2)}/", text)
     # "./wp-content" at root is fine; tidy "./"+"./"
     return text
 

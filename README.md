@@ -15,7 +15,7 @@ tools/    scripts used to build it (only needed if you want to re-capture)
 - **Kept as-is:**
   - The Contact page embeds your **Studio Ninja** form, so it only works while that Studio Ninja account/form exists.
   - The **counter.dev** and **PostHog** analytics snippets are still in place. Delete them from the pages if you don't want them.
-- **Fonts:** the theme names Montserrat and Source Sans Pro, but the live site never loads them, so visitors see the system sans-serif font. The copy matches that exactly.
+- **Full page version:** the live site's LiteSpeed cache first serves visitors a stripped-down "guest" page, then reloads into the full page. The crawler gets the full-page cookie first, so this copy includes the complete theme CSS and the Montserrat and Source Sans Pro fonts. Those fonts are now hosted inside this repo under `docs/cf-fonts/`.
 
 ## Publish on GitHub Pages
 

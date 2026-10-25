@@ -91,13 +91,33 @@ BASE_SNIPPET = (
     "document.write('<base href=\"'+b+'\">');})();</script>"
 )
 
+# ---------- ?page_id=N / ?p=N links -> pretty URLs ----------
+# The menu links to pages by ID (WordPress redirects those server-side; a static
+# host just serves the home page). Each page's <link rel="shortlink"> gives its ID.
+id_map = {}
+for dirpath, _, files in os.walk(ROOT):
+    if "index.html" in files:
+        html = open(os.path.join(dirpath, "index.html"), encoding="utf-8", errors="surrogateescape").read()
+        m = re.search(r"""rel=['"]shortlink['"][^>]*href=['"]https://luisandjessie\.com/\?p=(\d+)['"]""", html)
+        if m:
+            rel = os.path.relpath(dirpath, ROOT).replace(os.sep, "/")
+            id_map[m.group(1)] = "https://luisandjessie.com/" + ("" if rel == "." else rel + "/")
+print(f"page ids mapped: {len(id_map)}")
+
+
+def fix_page_ids(html):
+    def rep(m):
+        return id_map.get(m.group(2), m.group(0))
+    return re.sub(r"https://(?:www\.)?luisandjessie\.com/\?(page_id|p)=(\d+)(?![\d&])", rep, html)
+
+
 n_html = n_css = 0
 for dirpath, _, files in os.walk(ROOT):
     for fn in files:
         path = os.path.join(dirpath, fn)
         if fn.endswith(".html"):
             html = open(path, encoding="utf-8", errors="surrogateescape").read()
-            html = strip_junk(fix_scaled(html))
+            html = strip_junk(fix_scaled(fix_page_ids(html)))
             if os.path.relpath(path, ROOT) == "404.html":
                 # 404 is served at any depth, so resolve against the site root via <base>
                 # search needs WordPress; swap it for a link home
